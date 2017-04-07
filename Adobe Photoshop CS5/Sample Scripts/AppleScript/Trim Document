@@ -1,0 +1,1 @@
+-- Copyright 2002-2008.  Adobe Systems, Incorporated.  All rights reserved.tell application "Adobe Photoshop CS4"	activate	trim current document basing trim on top left pixel with top trim and bottom trim without left trim and right trimend tell

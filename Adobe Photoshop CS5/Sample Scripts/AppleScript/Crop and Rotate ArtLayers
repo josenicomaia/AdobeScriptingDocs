@@ -1,0 +1,45 @@
+-- Copyright 2002-2008.  Adobe Systems, Incorporated.  All rights reserved.
+-- this script will rotate every layer of the active document, then crop the image
+
+tell application "Adobe Photoshop CS4"
+	activate
+	
+	if ((count documents) < 1) then
+		display dialog "Please cancel and open your document, " & return & "Or wait 5 seconds to see the script run!" giving up after 5
+		
+		-- Make a new document with two layers if no document opened
+		set docRef to make new document
+		tell docRef
+			set mylayer to make new art layer
+			select region {{100, 100}, {100, 150}, {200, 150}, {200, 100}}
+			set myRed to {class:RGB color, red:255, green:0, blue:0}
+			fill selection with contents myRed
+			deselect
+		end tell
+	end if
+	
+	set docRef to current document
+	set artLayerList to get every art layer of docRef
+	set rotateAngle to 60
+	
+	repeat with layerRef in artLayerList
+		
+		set current layer of docRef to layerRef
+		set bkgroundLayer to background layer of layerRef
+		if (bkgroundLayer) then
+			set background layer of layerRef to false
+		end if
+		
+		rotate layerRef angle rotateAngle
+		set rotateAngle to rotateAngle + 60
+		
+		if (bkgroundLayer) then
+			set background layer of layerRef to true
+		end if
+		
+	end repeat
+	
+	crop docRef bounds {0 as inches, 0 as inches, 3 as inches, 4 as inches}
+	
+end tell
+

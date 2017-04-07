@@ -1,0 +1,22 @@
+-- Copyright 2002-2008.  Adobe Systems, Incorporated.  All rights reserved.
+-- This script will run the JavaScript named MosaicTiles.jsx. You need
+-- to type in the full path to MosaicTiles.jsx below.
+-- A copy of the MosaicTiles.jsx script
+-- is located in the JavaScript sample scripts folder.
+
+tell application "Adobe Photoshop CS4"
+	activate
+	
+	set scriptFile to "MosaicTiles.jsx"
+	
+	try
+		set scriptFile to scriptFile as alias
+		
+	on error errMsg number errNum
+		display dialog "I could not find the file " & scriptFile & ". Please modify the script with the path to this file."
+		return
+	end try
+	
+	do javascript scriptFile
+	
+end tell

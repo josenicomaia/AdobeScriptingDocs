@@ -1,0 +1,96 @@
+-- Copyright 2002-2008.  Adobe Systems, Incorporated.  All rights reserved.
+-- Demonstrates one approach to batch processing a folder of  documents.
+-- To setup, create a folder containing only documents which Photoshop can open,
+-- then run the script choosing that folder interactively. The script creates a
+-- new folder, Temp, (unless it already exists) below the chosen input documents
+-- folder, saves 2 copies of the original with modifications as .jpg. with an
+-- index tag appended to it. Note that for use in actual production, code would need
+-- to be added to make sure that appending the index tag doesn't force the name to
+-- exceed the filename length limit imposed by the operating system.
+
+set tempFolderName to "Temp"
+set inputFolder to choose folder
+
+tell application "Finder"
+	set filesList to files in inputFolder
+	if (not (exists folder ((inputFolder as string) & tempFolderName))) then
+		set outputFolder to make new folder at inputFolder with properties {name:tempFolderName}
+	else
+		set outputFolder to folder ((inputFolder as string) & tempFolderName)
+	end if
+end tell
+
+tell application "Adobe Photoshop CS4"
+	activate
+	set display dialogs to never
+	close every document saving no
+end tell
+
+repeat with aFile in filesList
+	
+	set fileIndex to 0
+	
+	tell application "Finder"
+		-- The step below is important because the 'aFile' reference as returned by
+		-- Finder associates the file with Finder and not Photoshop. By converting
+		-- the reference below 'as alias', the reference used by 'open' will be
+		-- correctly handled by Photoshop rather than Finder.
+		set theFile to aFile as alias
+		set theFileName to name of theFile
+	end tell
+	
+	tell application "Adobe Photoshop CS4"
+		activate
+		open theFile
+		
+		set docRef to the current document
+		set docHeight to height of docRef
+		set docWidth to width of docRef
+		
+		-- Convert the document to a document mode that supports saving as jpeg
+		if (mode of docRef is not RGB) then
+			change mode docRef to RGB
+		end if
+		if (bits per channel of docRef is sixteen) then
+			set bits per channel of docRef to eight
+		end if
+		
+		-- The first copy is simply saved with additional document info added
+		set infoRef to get info of docRef
+		set copyright notice of infoRef to "Copyright 2002-2008, Cool Photoshop Stuff"
+		
+		set docName to name of docRef
+		set docBaseName to getBaseName(docName) of me
+		set fileIndex to fileIndex + 1
+		set newFileName to (outputFolder as string) & docBaseName & "_" & fileIndex
+		
+		save docRef in file newFileName as JPEG appending lowercase extension with copying
+		
+		-- The second copy is saved resized to width of 100 pixels proportionally
+		-- There is no scale constraint in the resize image command.
+		-- Use the height/width ratio to simulate the option.
+		resize image current document width 100.0 as pixels height (100.0 * docHeight / docWidth) as pixels
+		
+		set fileIndex to fileIndex + 1
+		set newFileName to (outputFolder as string) & docBaseName & "_" & fileIndex
+		save docRef in file newFileName as JPEG appending lowercase extension with copying
+		
+		-- The original document is closed without saving so it remains as it was
+		-- when opened for batch processing
+		close current document without saving
+	end tell
+	
+end repeat
+
+
+-- Returns the document name without extension (if present)
+on getBaseName(fName)
+	set baseName to fName
+	repeat with idx from 1 to (length of fName)
+		if (item idx of fName = ".") then
+			set baseName to (items 1 thru (idx - 1) of fName) as string
+			exit repeat
+		end if
+	end repeat
+	return baseName
+end getBaseName

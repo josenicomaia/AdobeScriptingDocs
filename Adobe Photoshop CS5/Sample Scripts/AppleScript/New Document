@@ -1,0 +1,1 @@
+-- Copyright 2002-2008.  Adobe Systems, Incorporated.  All rights reserved.tell application "Adobe Photoshop CS4"	activate	set newDocRef to make new document with properties {width:3 as inches, height:3 as inches}end tell
